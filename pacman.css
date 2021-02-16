@@ -1,0 +1,72 @@
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+}
+body {
+  background: black;
+  margin-top: 100px;
+}
+
+#game {
+  border: 2px solid yellow;
+  border-radius: 25px;
+  width: fit-content;
+  margin: 0 auto;
+  display: grid;
+  grid: repeat(13, 25px) / repeat(24, 25px);
+}
+
+.cell {
+  /* border: 1px solid white; */
+}
+
+.cell-blocked {
+  border: 2px solid yellow;
+  background: yellow;
+
+  /* border-radius: 25px; */
+  /* background: yellow; */
+}
+
+.cell-blocked + .cell-blocked {
+  /* border-left: none;
+  border-right: none;
+  background: yellow;
+  border-radius: 0; */
+}
+
+.cell-candy:after {
+  content: "🍬";
+  position: relative;
+}
+
+.cell-food:after {
+  color: lightblue;
+  content: ".";
+  position: relative;
+  left: 50%;
+}
+
+.critter:after {
+  content: "🐣";
+  animation: changeBaby 0.75s linear infinite alternate;
+  position: absolute;
+  margin-left: -50%;
+}
+
+@keyframes changeBaby {
+  0% {
+    content: "🐥";
+  }
+  50% {
+    content: "🐣";
+  }
+  100% {
+    content: "🥚";
+  }
+}
