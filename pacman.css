@@ -12,6 +12,7 @@
 * {
   box-sizing: border-box;
 }
+
 html,
 body {
   padding: 0;
@@ -21,6 +22,12 @@ body {
 body {
   background: black;
   margin-top: 25px;
+}
+
+.fork-link {
+  position: absolute;
+  right: 0;
+  top: 0;
 }
 
 #game {
