@@ -1,18 +1,22 @@
 const board = `
 111118111111111118111111
-288881818888888818188882
+281818118888888818181882
 111111111111111111111111
-881881888881818888818188
-001881111111811111118100
+881881881881818888818188
+011811111118111111181001
+881888801888188008888188
+881888801888188008888188
+881811111888111118888188
 881888800888888008888188
-881888800888888008888188
-881888800888888008888188
-881888800888888008888188
-001881111111811111118100
-881881888881818888818188
-211111111111111111111112
+001881111111811111118111
+881881888881818888818181
+211111111111111111111182
 111118111111111118111111
 `;
+
+const style = getComputedStyle(document.documentElement);
+const CELL_SIZE = parseInt(style.getPropertyValue("--cell-size"), 10);
+const MOVE_TIME = parseInt(style.getPropertyValue("--move-time"), 10);
 
 const classes = {
   0: "empty",
@@ -32,9 +36,19 @@ class Critter {
     this.x = Math.ceil(gameBoard[0].length / 2);
     this.lastX = this.x;
     this.lastY = this.y;
+    this.el = document.createElement("div");
+    this.el.classList.add("critter");
   }
   setDiriection(direction) {
     this.direction = direction;
+  }
+  disableBeastMode() {
+    this.el.classList.remove("critter-beast");
+  }
+  enableBeastMode() {
+    this.el.classList.add("critter-beast");
+    clearTimeout(this.beastTimer);
+    this.beastTimer = setTimeout(() => this.disableBeastMode(), 7500);
   }
   move() {
     const lastX = this.x;
@@ -56,16 +70,16 @@ class Critter {
         return;
     }
 
-    console.log(this.game.width, this.game.height, this.x, this.y);
+    const current = this.gameBoard?.[this.y]?.[this.x];
 
     if (
       this.x < 0 ||
       this.y < 0 ||
       this.x > this.game.width ||
       this.y >= this.game.height ||
-      this.gameBoard[this.y][this.x - 1] === "8"
+      current === "8"
     ) {
-      console.log("hitting wall at", [this.x, this.y]);
+      // console.log("hitting wall at", [this.x, this.y]);
       // go backwards (don't bother setting lastX, lastY, because unchanged)
       this.x = lastX;
       this.y = lastY;
@@ -74,6 +88,14 @@ class Critter {
       this.lastX = lastX;
       this.lastY = lastY;
     }
+
+    if (current === "2") {
+      this.enableBeastMode();
+    }
+
+    const x = this.x * CELL_SIZE;
+    const y = this.y * CELL_SIZE;
+    this.el.style.transform = `translate(${x}px, ${y}px)`;
   }
 }
 
@@ -84,8 +106,8 @@ class Game {
       .trim()
       .split("\n")
       .map((x) => x.split(""));
-    this.renderGame();
     this.critter = new Critter(this.gameBoard);
+    this.renderGame(this.critter);
     this.next();
     document.body.addEventListener("keydown", (e) => this.handleKeyPress(e));
   }
@@ -93,18 +115,12 @@ class Game {
     this.critter.setDiriection(e.key);
   }
   next() {
-    let pos = this.critter.y * this.gameBoard[0].length + this.critter.x;
-    this.el.childNodes[pos].classList.toggle("cell-withCritter", true);
-    pos = this.critter.lastY * this.gameBoard[0].length + this.critter.lastX;
-    this.el.childNodes[pos].classList.remove(
-      "cell-withCritter",
-      "cell-candy",
-      "cell-food"
-    );
+    let pos = this.critter.y * this.gameBoard[0].length + this.critter.x + 1;
+    this.el.childNodes[pos].classList.remove("cell-candy", "cell-food");
     this.critter.move();
-    setTimeout(() => this.next(), 300);
+    setTimeout(() => this.next(), MOVE_TIME);
   }
-  renderGame() {
+  renderGame(critter) {
     const frag = document.createDocumentFragment();
     for (let row of this.gameBoard) {
       for (let number of row) {
@@ -114,6 +130,7 @@ class Game {
         frag.append(div);
       }
     }
+    frag.append(critter.el);
     game.append(frag);
   }
 }

@@ -1,3 +1,9 @@
+:root {
+  --main-color: plum;
+  --cell-size: 25px;
+  --move-time: 300ms;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -13,21 +19,23 @@ body {
 }
 
 #game {
-  border: 2px solid yellow;
+  overflow: hidden;
+  position: relative;
+  border: 2px solid var(--main-color);
   border-radius: 25px;
   width: fit-content;
   margin: 0 auto;
   display: grid;
-  grid: repeat(13, 25px) / repeat(24, 25px);
+  grid: repeat(13, var(--cell-size)) / repeat(24, var(--cell-size));
 }
 
 .cell {
-  /* border: 1px solid white; */
+  /* border: 1px dotted lightblue; */
 }
 
 .cell-blocked {
-  border: 2px solid yellow;
-  background: yellow;
+  border: 2px solid var(--main-color);
+  background: var(--main-color);
 
   /* border-radius: 25px; */
   /* background: yellow; */
@@ -52,21 +60,43 @@ body {
   left: 50%;
 }
 
+.critter {
+  position: absolute;
+  top: 3px;
+  left: 5px;
+  transform: translate(0, 0);
+  transition: linear transform 300ms;
+}
+
 .critter:after {
   content: "🐣";
-  animation: changeBaby 0.75s linear infinite alternate;
+  animation: changeBaby 0.3s linear infinite alternate;
   position: absolute;
   margin-left: -50%;
 }
 
 @keyframes changeBaby {
-  0% {
+  /* 0% {
     content: "🐥";
-  }
-  50% {
+  } */
+  0% {
     content: "🐣";
   }
   100% {
     content: "🥚";
+  }
+}
+
+.critter-beast:after {
+  content: "🐥";
+  animation: waddle 0.3s infinite alternate;
+}
+
+@keyframes waddle {
+  0% {
+    transform: rotate(15deg);
+  }
+  100% {
+    transform: rotate(-15deg);
   }
 }
