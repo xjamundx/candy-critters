@@ -70,7 +70,9 @@ class Critter {
         return;
     }
 
-    const current = this.gameBoard?.[this.y]?.[this.x];
+    const current = this.gameBoard[this.y]
+      ? this.gameBoard[this.y][this.x]
+      : "8";
 
     if (
       this.x < 0 ||
