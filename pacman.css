@@ -4,6 +4,11 @@
   --move-time: 300ms;
 }
 
+@font-face {
+  font-family: PacFont;
+  src: url("pacfont.ttf") format("truetype");
+}
+
 * {
   box-sizing: border-box;
 }
@@ -15,7 +20,7 @@ body {
 }
 body {
   background: black;
-  margin-top: 100px;
+  margin-top: 25px;
 }
 
 #game {
@@ -99,4 +104,10 @@ body {
   100% {
     transform: rotate(-15deg);
   }
+}
+
+h1 {
+  text-align: center;
+  color: var(--main-color);
+  font-family: PacFont;
 }
