@@ -1,6 +1,6 @@
 :root {
   --main-color: plum;
-  --cell-size: 25px;
+  --cell-size: 43px;
   --move-time: 300ms;
 }
 
@@ -34,11 +34,19 @@ body {
   overflow: hidden;
   position: relative;
   border: 2px solid var(--main-color);
-  border-radius: 25px;
+  border-radius: var(--cell-size);
   width: fit-content;
+  font-size: var(--cell-size);
   margin: 0 auto;
   display: grid;
   grid: repeat(13, var(--cell-size)) / repeat(24, var(--cell-size));
+}
+
+h1 {
+  font-size: 4em;
+  text-align: center;
+  color: var(--main-color);
+  font-family: PacFont;
 }
 
 .cell {
@@ -62,35 +70,60 @@ body {
 
 .cell-candy:after {
   content: "🍬";
-  position: relative;
+  padding-left: 3px;
+  font-size: 0.75em;
+  vertical-align: top;
 }
 
 .cell-food:after {
   color: lightblue;
   content: ".";
   position: relative;
-  left: 50%;
+  left: 14px;
+  top: -14px;
 }
 
 .critter {
   position: absolute;
   top: 3px;
-  left: 5px;
-  transform: translate(0, 0);
-  transition: linear transform 300ms;
+  left: 3px;
+
+  /* transform: translate(0, 0); */
+
+  transition: linear all 300ms;
+  transition-property: opacity, top, left;
+
+  width: 0px;
+  height: 0px;
+
+  border-right: 0.4em solid transparent;
+  border-top: 0.4em solid var(--main-color);
+  border-left: 0.4em solid var(--main-color);
+  border-bottom: 0.4em solid var(--main-color);
+  border-top-left-radius: 0.4em;
+  border-top-right-radius: 0.4em;
+  border-bottom-left-radius: 0.4em;
+  border-bottom-right-radius: 0.4em;
+  animation: waddle 0.5s infinite alternate;
 }
 
-.critter:after {
+@keyframes full-shape {
+  0% {
+    border-right: 0.4em solid transparent;
+  }
+  100% {
+    border-right: 0.4em solid var(--main-color);
+  }
+}
+
+/* .critter:after {
   content: "🐣";
   animation: changeBaby 0.3s linear infinite alternate;
   position: absolute;
-  margin-left: -50%;
-}
+  font-size: 0.75em;
+} 
 
 @keyframes changeBaby {
-  /* 0% {
-    content: "🐥";
-  } */
   0% {
     content: "🐣";
   }
@@ -99,9 +132,11 @@ body {
   }
 }
 
+*/
+
 .critter-beast:after {
   content: "🐥";
-  animation: waddle 0.3s infinite alternate;
+  animation: waddle 0.2s infinite alternate;
 }
 
 @keyframes waddle {
@@ -111,10 +146,4 @@ body {
   100% {
     transform: rotate(-15deg);
   }
-}
-
-h1 {
-  text-align: center;
-  color: var(--main-color);
-  font-family: PacFont;
 }

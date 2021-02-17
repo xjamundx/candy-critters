@@ -29,7 +29,7 @@ const game = document.getElementById("game");
 
 class Critter {
   constructor(gameBoard) {
-    this.direction = "ArrowRight";
+    this.direction = "ArrowDown";
     this.gameBoard = gameBoard;
     this.game = { height: gameBoard.length, width: gameBoard[0].length };
     this.y = gameBoard.length - 1;
@@ -77,7 +77,7 @@ class Critter {
     if (
       this.x < 0 ||
       this.y < 0 ||
-      this.x > this.game.width ||
+      this.x >= this.game.width ||
       this.y >= this.game.height ||
       current === "8"
     ) {
@@ -97,7 +97,9 @@ class Critter {
 
     const x = this.x * CELL_SIZE;
     const y = this.y * CELL_SIZE;
-    this.el.style.transform = `translate(${x}px, ${y}px)`;
+
+    this.el.style.top = `${y + 3}px`;
+    this.el.style.left = `${x + 3}px`;
   }
 }
 
