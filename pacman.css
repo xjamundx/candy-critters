@@ -2,6 +2,9 @@
   --main-color: plum;
   --cell-size: 43px;
   --move-time: 300ms;
+  --critter: "🐕";
+  --beast: "🐾";
+  --candy: "🦴";
 }
 
 @font-face {
@@ -56,20 +59,10 @@ h1 {
 .cell-blocked {
   border: 2px solid var(--main-color);
   background: var(--main-color);
-
-  /* border-radius: 25px; */
-  /* background: yellow; */
-}
-
-.cell-blocked + .cell-blocked {
-  /* border-left: none;
-  border-right: none;
-  background: yellow;
-  border-radius: 0; */
 }
 
 .cell-candy:after {
-  content: "🍬";
+  content: var(--candy);
   padding-left: 3px;
   font-size: 0.75em;
   vertical-align: top;
@@ -87,24 +80,8 @@ h1 {
   position: absolute;
   top: 3px;
   left: 3px;
-
-  /* transform: translate(0, 0); */
-
   transition: linear all 300ms;
   transition-property: opacity, top, left;
-
-  width: 0px;
-  height: 0px;
-
-  border-right: 0.4em solid transparent;
-  border-top: 0.4em solid var(--main-color);
-  border-left: 0.4em solid var(--main-color);
-  border-bottom: 0.4em solid var(--main-color);
-  border-top-left-radius: 0.4em;
-  border-top-right-radius: 0.4em;
-  border-bottom-left-radius: 0.4em;
-  border-bottom-right-radius: 0.4em;
-  animation: waddle 0.5s infinite alternate;
 }
 
 @keyframes full-shape {
@@ -116,34 +93,48 @@ h1 {
   }
 }
 
-/* .critter:after {
-  content: "🐣";
-  animation: changeBaby 0.3s linear infinite alternate;
-  position: absolute;
+.critter:after {
+  content: var(--critter);
   font-size: 0.75em;
-} 
-
-@keyframes changeBaby {
-  0% {
-    content: "🐣";
-  }
-  100% {
-    content: "🥚";
-  }
+  animation: waddle 0.3s infinite alternate;
+  transform-origin: center;
 }
 
-*/
+.critter-up {
+  transform: rotate(90deg);
+}
+
+.critter-down {
+  transform: rotate(270deg);
+}
+
+.critter-right {
+  transform: scaleX(-1);
+}
 
 .critter-beast:after {
-  content: "🐥";
+  content: var(--beast);
   animation: waddle 0.2s infinite alternate;
+}
+
+.critter-fade {
+  animation: fade 0.3s 5 alternate-reverse;
 }
 
 @keyframes waddle {
   0% {
-    transform: rotate(15deg);
+    transform: rotate(5deg);
   }
   100% {
-    transform: rotate(-15deg);
+    transform: rotate(-5deg);
+  }
+}
+
+@keyframes fade {
+  0% {
+    opacity: 100%;
+  }
+  100% {
+    opacity: 20%;
   }
 }

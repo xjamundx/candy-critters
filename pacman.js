@@ -29,7 +29,7 @@ const game = document.getElementById("game");
 
 class Critter {
   constructor(gameBoard) {
-    this.direction = "ArrowDown";
+    this.direction = "down";
     this.gameBoard = gameBoard;
     this.game = { height: gameBoard.length, width: gameBoard[0].length };
     this.y = gameBoard.length - 1;
@@ -39,14 +39,34 @@ class Critter {
     this.el = document.createElement("div");
     this.el.classList.add("critter");
   }
-  setDiriection(direction) {
-    this.direction = direction;
+  setDirection(direction) {
+    const dirs = new Set(["up", "left", "down", "right"]);
+    const dir = direction.replace("Arrow", "").toLowerCase();
+    if (dirs.has(dir)) {
+      this.direction = dir;
+      const cls = "critter-" + dir;
+      if (!this.el.classList.contains(cls)) {
+        this.el.classList.remove(
+          "critter-up",
+          "critter-down",
+          "critter-left",
+          "critter-right"
+        );
+        this.el.classList.add(cls);
+      }
+    }
   }
   disableBeastMode() {
     this.el.classList.remove("critter-beast");
+    this.el.classList.remove("critter-fade");
   }
   enableBeastMode() {
-    this.el.classList.add("critter-beast");
+    setTimeout(() => {
+      this.el.classList.add("critter-fade");
+      setTimeout(() => {
+        this.el.classList.add("critter-beast");
+      }, 1500);
+    }, 300);
     clearTimeout(this.beastTimer);
     this.beastTimer = setTimeout(() => this.disableBeastMode(), 7500);
   }
@@ -54,16 +74,16 @@ class Critter {
     const lastX = this.x;
     const lastY = this.y;
     switch (this.direction) {
-      case "ArrowRight":
+      case "right":
         this.x++;
         break;
-      case "ArrowLeft":
+      case "left":
         this.x--;
         break;
-      case "ArrowUp":
+      case "up":
         this.y--;
         break;
-      case "ArrowDown":
+      case "down":
         this.y++;
         break;
       default:
@@ -110,18 +130,28 @@ class Game {
       .trim()
       .split("\n")
       .map((x) => x.split(""));
+    this.numCandies = board.replace(/[^1]/g, "").length;
+    console.log(this.numCandies, board.replace(/[^1]/g, ""));
     this.critter = new Critter(this.gameBoard);
     this.renderGame(this.critter);
     this.next();
     document.body.addEventListener("keydown", (e) => this.handleKeyPress(e));
   }
   handleKeyPress(e) {
-    this.critter.setDiriection(e.key);
+    this.critter.setDirection(e.key);
   }
   next() {
     let pos = this.critter.y * this.gameBoard[0].length + this.critter.x + 1;
+    if (this.gameBoard[this.critter.y][this.critter.x] === "1") {
+      this.numCandies--;
+    }
+    this.gameBoard[this.critter.y][this.critter.x] = 0;
     this.el.childNodes[pos].classList.remove("cell-candy", "cell-food");
     this.critter.move();
+    if (this.numCandies === 0) {
+      alert("Game Over!");
+      return;
+    }
     setTimeout(() => this.next(), MOVE_TIME);
   }
   renderGame(critter) {
