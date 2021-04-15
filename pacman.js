@@ -3,7 +3,7 @@ const board = `
 281818118888888818181882
 111111111111111111111111
 881881881881818888818188
-011811111118111111181001
+011811111111111111111001
 881888801888188008888188
 881888801888188008888188
 881811111888111118888188
@@ -27,17 +27,150 @@ const classes = {
 
 const game = document.getElementById("game");
 
-class Critter {
-  constructor(gameBoard) {
-    this.direction = "down";
+class Game {
+  constructor(el) {
+    this.paused = false;
+    this.el = el;
+    this.gameBoard = board
+      .trim()
+      .split("\n")
+      .map((x) => x.split(""));
+    this.numCandies = board.replace(/[^1]/g, "").length;
+    const critterX = Math.ceil(this.gameBoard[0].length / 2);
+    const critterY = this.gameBoard.length - 1;
+    this.critter = new Critter(critterX, critterY, this.gameBoard);
+    let ghostX = Math.floor(this.gameBoard[0].length / 2) - 2;
+    this.ghosts = Array(4)
+      .fill("")
+      .map(() => new Ghost(ghostX++, 0, this.gameBoard));
+    this.ghosts.forEach((ghost) => ghost.draw());
+    this.renderGame();
+    this.tick();
+    document.body.addEventListener("keydown", (e) => this.handleKeyPress(e));
+  }
+  handleKeyPress(e) {
+    if (this.paused) return;
+    this.critter.setDirection(e.key);
+  }
+  move() {
+    if (this.paused) return;
+    let pos = this.critter.y * this.gameBoard[0].length + this.critter.x + 1;
+    if (this.gameBoard[this.critter.y][this.critter.x] === "1") {
+      this.numCandies--;
+    }
+    this.gameBoard[this.critter.y][this.critter.x] = 0;
+    this.el.childNodes[pos].classList.remove("cell-candy", "cell-food");
+    this.critter.move();
+    this.ghosts.forEach((ghost) => ghost.move());
+    this.checkCollisions();
+  }
+  checkCollisions() {
+    if (this.critter.beastMode) return;
+    const dead = this.ghosts.some((ghost) => {
+      return ghost.x === this.critter.x && this.critter.y === ghost.y;
+    });
+    if (dead) {
+      this.paused = true;
+      this.critter.die();
+    }
+  }
+  tick() {
+    this.move();
+    if (this.numCandies === 0) {
+      this.paused = true;
+      alert("Game Over!");
+      return;
+    }
+    setTimeout(() => this.tick(), MOVE_TIME);
+  }
+  renderGame() {
+    const frag = document.createDocumentFragment();
+    for (let [i, row] of this.gameBoard.entries()) {
+      for (let [j, number] of row.entries()) {
+        const div = document.createElement("div");
+        div.className = "cell";
+        div.classList.add(`cell-${classes[number]}`);
+        if (number === "8") {
+          if ((row[j + 1] ?? "8") !== number) div.classList.add("border-right");
+          if ((row[j - 1] ?? "8") !== number) div.classList.add("border-left");
+          if ((this.gameBoard[i - 1]?.[j] ?? "8") !== number)
+            div.classList.add("border-top");
+          if ((this.gameBoard[i + 1]?.[j] ?? "8") !== number)
+            div.classList.add("border-bottom");
+        }
+        frag.append(div);
+      }
+    }
+    frag.append(this.critter.el);
+    this.ghosts.forEach((ghost) => frag.append(ghost.el));
+    frag.append(this.critter.el);
+    game.append(frag);
+  }
+}
+
+class MovingThing {
+  constructor(x, y, gameBoard) {
+    this.el = document.createElement("div");
+    this.x = x;
+    this.y = y;
+    this.lastX = x;
+    this.lastY = y;
     this.gameBoard = gameBoard;
-    this.game = { height: gameBoard.length, width: gameBoard[0].length };
-    this.y = gameBoard.length - 1;
-    this.x = Math.ceil(gameBoard[0].length / 2);
+  }
+  move() {
+    this.draw();
+  }
+  draw() {
+    const x = this.x * CELL_SIZE;
+    const y = this.y * CELL_SIZE;
+    this.el.style.top = `${y + 3}px`;
+    this.el.style.left = `${x + 3}px`;
+  }
+}
+
+class Ghost extends MovingThing {
+  constructor(x, y, gameBoard) {
+    super(x, y, gameBoard);
+    this.el.classList.add("ghost");
+  }
+  isValidMove(x, y) {
+    if ((this.gameBoard[y]?.[x] ?? "8") === "8") {
+      return false;
+    }
+    return true;
+  }
+  move() {
     this.lastX = this.x;
     this.lastY = this.y;
-    this.el = document.createElement("div");
+    const randDir = Math.random();
+    const rand = Math.random();
+    const move = rand > 0.6 ? -1 : rand > 0.3 ? 1 : 0;
+    if (randDir > 0.5) this.x += move;
+    if (randDir <= 0.5) this.y += move;
+    if (this.isValidMove(this.x, this.y)) {
+      this.draw();
+    } else {
+      this.x = this.lastX;
+      this.y = this.lastY;
+    }
+  }
+}
+
+class Critter extends MovingThing {
+  constructor(x, y, gameBoard) {
+    super(x, y, gameBoard);
+    this.animationTimeout = 300;
+    this.alive = true;
+    this.beastMode = false;
     this.el.classList.add("critter");
+    this.direction = "down";
+    this.game = { height: gameBoard.length, width: gameBoard[0].length };
+  }
+  die() {
+    setTimeout(() => {
+      this.alive = false;
+      this.el.classList.add("critter-dead");
+    }, this.animationTimeout);
   }
   setDirection(direction) {
     const dirs = new Set(["up", "left", "down", "right"]);
@@ -59,14 +192,16 @@ class Critter {
   disableBeastMode() {
     this.el.classList.remove("critter-beast");
     this.el.classList.remove("critter-fade");
+    this.beastMode = false;
   }
   enableBeastMode() {
+    this.beastMode = true;
     setTimeout(() => {
       this.el.classList.add("critter-fade");
       setTimeout(() => {
         this.el.classList.add("critter-beast");
       }, 1500);
-    }, 300);
+    }, this.animationTimeout);
     clearTimeout(this.beastTimer);
     this.beastTimer = setTimeout(() => this.disableBeastMode(), 7500);
   }
@@ -115,57 +250,7 @@ class Critter {
       this.enableBeastMode();
     }
 
-    const x = this.x * CELL_SIZE;
-    const y = this.y * CELL_SIZE;
-
-    this.el.style.top = `${y + 3}px`;
-    this.el.style.left = `${x + 3}px`;
-  }
-}
-
-class Game {
-  constructor(el) {
-    this.el = el;
-    this.gameBoard = board
-      .trim()
-      .split("\n")
-      .map((x) => x.split(""));
-    this.numCandies = board.replace(/[^1]/g, "").length;
-    console.log(this.numCandies, board.replace(/[^1]/g, ""));
-    this.critter = new Critter(this.gameBoard);
-    this.renderGame(this.critter);
-    this.next();
-    document.body.addEventListener("keydown", (e) => this.handleKeyPress(e));
-  }
-  handleKeyPress(e) {
-    this.critter.setDirection(e.key);
-  }
-  next() {
-    let pos = this.critter.y * this.gameBoard[0].length + this.critter.x + 1;
-    if (this.gameBoard[this.critter.y][this.critter.x] === "1") {
-      this.numCandies--;
-    }
-    this.gameBoard[this.critter.y][this.critter.x] = 0;
-    this.el.childNodes[pos].classList.remove("cell-candy", "cell-food");
-    this.critter.move();
-    if (this.numCandies === 0) {
-      alert("Game Over!");
-      return;
-    }
-    setTimeout(() => this.next(), MOVE_TIME);
-  }
-  renderGame(critter) {
-    const frag = document.createDocumentFragment();
-    for (let row of this.gameBoard) {
-      for (let number of row) {
-        const div = document.createElement("div");
-        div.className = "cell";
-        div.classList.add(`cell-${classes[number]}`);
-        frag.append(div);
-      }
-    }
-    frag.append(critter.el);
-    game.append(frag);
+    this.draw();
   }
 }
 

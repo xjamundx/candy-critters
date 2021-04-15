@@ -5,6 +5,7 @@
   --critter: "🐕";
   --beast: "🐾";
   --candy: "🦴";
+  --ghost: "🦖";
 }
 
 @font-face {
@@ -61,6 +62,53 @@ h1 {
   background: var(--main-color);
 }
 
+.cell-blocked {
+  background: black;
+  border: none;
+}
+
+.border-right {
+  border-right: 2px solid var(--main-color);
+}
+.border-top {
+  border-top: 2px solid var(--main-color);
+}
+.border-left {
+  border-left: 2px solid var(--main-color);
+}
+.border-bottom {
+  border-bottom: 2px solid var(--main-color);
+}
+.border-bottom.border-right {
+  border-radius: 0 0 5px 0;
+}
+.border-bottom.border-left {
+  border-radius: 0 5px 0 5px;
+}
+.border-top.border-left {
+  border-radius: 5px 0 0 0;
+}
+.border-top.border-right {
+  border-radius: 0 5px 0 0;
+}
+
+.border-bottom.border-left.border-right {
+  border-radius: 0 0 5px 5px;
+}
+.border-bottom.border-top.border-right {
+  border-radius: 0 5px 5px 0;
+}
+.border-left.border-top.border-bottom {
+  border-radius: 5px 0 0 5px;
+}
+.border-top.border-left.border-right {
+  border-radius: 5px 5px 0 0;
+}
+
+.border-bottom.border-left.border-top.border-right {
+  border-radius: 5px;
+}
+
 .cell-candy:after {
   content: var(--candy);
   padding-left: 3px;
@@ -76,6 +124,7 @@ h1 {
   top: -14px;
 }
 
+.ghost,
 .critter {
   position: absolute;
   top: 3px;
@@ -84,20 +133,16 @@ h1 {
   transition-property: opacity, top, left;
 }
 
-@keyframes full-shape {
-  0% {
-    border-right: 0.4em solid transparent;
-  }
-  100% {
-    border-right: 0.4em solid var(--main-color);
-  }
-}
-
+.ghost:after,
 .critter:after {
   content: var(--critter);
   font-size: 0.75em;
   animation: waddle 0.3s infinite alternate;
   transform-origin: center;
+}
+
+.ghost:after {
+  content: var(--ghost);
 }
 
 .critter-up {
@@ -121,6 +166,11 @@ h1 {
   animation: fade 0.3s 5 alternate-reverse;
 }
 
+.critter-dead {
+  filter: brightness(0.3) sepia(0.4) hue-rotate(304deg) saturate(5);
+  text-shadow: 7px 1px 20px #a97922;
+}
+
 @keyframes waddle {
   0% {
     transform: rotate(5deg);
@@ -136,5 +186,14 @@ h1 {
   }
   100% {
     opacity: 20%;
+  }
+}
+
+@keyframes full-shape {
+  0% {
+    border-right: 0.4em solid transparent;
+  }
+  100% {
+    border-right: 0.4em solid var(--main-color);
   }
 }
