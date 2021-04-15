@@ -60,18 +60,31 @@ class Game {
     }
     this.gameBoard[this.critter.y][this.critter.x] = 0;
     this.el.childNodes[pos].classList.remove("cell-candy", "cell-food");
+    if (this.checkCollisions()) {
+      return;
+    }
     this.critter.move();
     this.ghosts.forEach((ghost) => ghost.move());
-    this.checkCollisions();
   }
   checkCollisions() {
     if (this.critter.beastMode) return;
+    const { x, y, width, height } = this.critter.el.getBoundingClientRect();
+    const critterX = x + width / 2;
+    const critterY = y + height / 2;
     const dead = this.ghosts.some((ghost) => {
-      return ghost.x === this.critter.x && this.critter.y === ghost.y;
+      const ghostBounds = ghost.el.getBoundingClientRect();
+      return (
+        critterX > ghostBounds.x &&
+        critterX <= ghostBounds.x + ghostBounds.width &&
+        critterY > ghostBounds.y &&
+        critterY <= ghostBounds.y + ghostBounds.height
+      );
+      // return ghost.x === this.critter.x && this.critter.y === ghost.y;
     });
     if (dead) {
       this.paused = true;
       this.critter.die();
+      return true;
     }
   }
   tick() {
@@ -131,7 +144,14 @@ class MovingThing {
 class Ghost extends MovingThing {
   constructor(x, y, gameBoard) {
     super(x, y, gameBoard);
+    this.directions = new Set(["up", "left", "down", "right"]);
+    this.chooseRandomDirection();
     this.el.classList.add("ghost");
+  }
+  chooseRandomDirection() {
+    this.direction = Array.from(this.directions)[
+      Math.floor(this.directions.size * Math.random())
+    ];
   }
   isValidMove(x, y) {
     if ((this.gameBoard[y]?.[x] ?? "8") === "8") {
@@ -142,14 +162,19 @@ class Ghost extends MovingThing {
   move() {
     this.lastX = this.x;
     this.lastY = this.y;
-    const randDir = Math.random();
-    const rand = Math.random();
-    const move = rand > 0.6 ? -1 : rand > 0.3 ? 1 : 0;
-    if (randDir > 0.5) this.x += move;
-    if (randDir <= 0.5) this.y += move;
+    if (this.direction === "up") {
+      this.y -= 1;
+    } else if (this.direction === "down") {
+      this.y += 1;
+    } else if (this.direction === "left") {
+      this.x -= 1;
+    } else if (this.direction === "right") {
+      this.x += 1;
+    }
     if (this.isValidMove(this.x, this.y)) {
       this.draw();
     } else {
+      this.chooseRandomDirection();
       this.x = this.lastX;
       this.y = this.lastY;
     }
@@ -167,10 +192,8 @@ class Critter extends MovingThing {
     this.game = { height: gameBoard.length, width: gameBoard[0].length };
   }
   die() {
-    setTimeout(() => {
-      this.alive = false;
-      this.el.classList.add("critter-dead");
-    }, this.animationTimeout);
+    this.alive = false;
+    this.el.classList.add("critter-dead");
   }
   setDirection(direction) {
     const dirs = new Set(["up", "left", "down", "right"]);
