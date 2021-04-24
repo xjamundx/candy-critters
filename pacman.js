@@ -145,23 +145,45 @@ class Ghost extends MovingThing {
   constructor(x, y, gameBoard) {
     super(x, y, gameBoard);
     this.directions = new Set(["up", "left", "down", "right"]);
-    this.chooseRandomDirection();
+    this.chooseAnotherDirection();
     this.el.classList.add("ghost");
   }
-  chooseRandomDirection() {
-    this.direction = Array.from(this.directions)[
-      Math.floor(this.directions.size * Math.random())
-    ];
+  chooseAnotherDirection(moves = this.getMoves()) {
+    this.direction = Array.from(moves)[Math.floor(moves.size * Math.random())];
   }
-  isValidMove(x, y) {
-    if ((this.gameBoard[y]?.[x] ?? "8") === "8") {
+  isValidMove() {
+    if ((this.gameBoard[this.y]?.[this.x] ?? "8") === "8") {
       return false;
     }
     return true;
   }
+  getMoves() {
+    const moves = new Set();
+    const y1 = this.gameBoard[this.y - 1] || [];
+    const y2 = this.gameBoard[this.y + 1] || [];
+    if ((y1[this.x] ?? "8") !== "8") moves.add("up");
+    if ((y2[this.x] ?? "8") !== "8") moves.add("down");
+    if ((this.gameBoard[this.y][this.x - 1] ?? "8") !== "8") moves.add("left");
+    if ((this.gameBoard[this.y][this.x + 1] ?? "8") !== "8") moves.add("right");
+
+    // you can't change to what you're already doing
+    moves.delete(this.direction);
+
+    // and I don't want you to change direction backwards either
+    if (this.direction === "up") moves.delete("down");
+    if (this.direction === "right") moves.delete("left");
+    if (this.direction === "down") moves.delete("up");
+    if (this.direction === "left") moves.delete("right");
+    return moves;
+  }
   move() {
     this.lastX = this.x;
     this.lastY = this.y;
+    const moves = this.getMoves();
+    // 25 % of the time let's have them
+    if (Math.random() > 0.75) {
+      this.chooseAnotherDirection(moves);
+    }
     if (this.direction === "up") {
       this.y -= 1;
     } else if (this.direction === "down") {
@@ -174,7 +196,7 @@ class Ghost extends MovingThing {
     if (this.isValidMove(this.x, this.y)) {
       this.draw();
     } else {
-      this.chooseRandomDirection();
+      this.chooseAnotherDirection(moves);
       this.x = this.lastX;
       this.y = this.lastY;
     }
